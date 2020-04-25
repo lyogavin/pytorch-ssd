@@ -190,3 +190,6 @@ if __name__ == '__main__':
     ds = AVADataset("./")
 
     print(list(DataLoader(ds, num_workers=0)))
+
+    for a in list(DataLoader(ds, num_workers=0)):
+        print([x.shape for x in a])
