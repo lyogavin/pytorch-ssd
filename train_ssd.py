@@ -103,6 +103,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO,
 args = parser.parse_args()
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu")
 
+logging.info("parsed args: %s" % args)
 if args.use_cuda and torch.cuda.is_available():
     torch.backends.cudnn.benchmark = True
     logging.info("Use Cuda.")
