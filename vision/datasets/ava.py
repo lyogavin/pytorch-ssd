@@ -158,7 +158,8 @@ class AVADataset:
         return "\n".join(content)
 
     def _read_image(self, image_id):
-        image_file = self.root / self.dataset_type / f"{image_id}.jpg"
+        #image_file = self.root / self.dataset_type / f"{image_id}.jpg"
+        image_file = self.root / f"{image_id}"[:-7] / f"{image_id}.jpg"
         print('reading %s' % image_file)
         image = cv2.imread(str(image_file))
         if image.shape[2] == 1:
@@ -187,9 +188,10 @@ class AVADataset:
 if __name__ == '__main__':
     print ('testing...')
     from torch.utils.data import DataLoader
-    ds = AVADataset("./")
+    ds = AVADataset("/home/pi/ava_dataset/", dataset_type="val")
 
-    print(list(DataLoader(ds, num_workers=0)))
-
-    for a in list(DataLoader(ds, num_workers=0)):
+    #print(list(DataLoader(ds, num_workers=0)))
+    
+    for a in DataLoader(ds, num_workers=0):
         print([x.shape for x in a])
+
