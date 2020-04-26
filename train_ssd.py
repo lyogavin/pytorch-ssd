@@ -244,7 +244,7 @@ if __name__ == '__main__':
     elif args.dataset_type == 'ava':
         val_dataset = AVADataset(dataset_path,
                                         transform=test_transform, target_transform=target_transform,
-                                        dataset_type="test")
+                                        dataset_type="val")
         logging.info(val_dataset)
     logging.info("validation dataset size: {}".format(len(val_dataset)))
 
