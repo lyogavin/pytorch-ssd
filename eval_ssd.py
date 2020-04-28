@@ -188,7 +188,9 @@ if __name__ == '__main__':
     results = torch.cat(results)
     for class_index, class_name in enumerate(class_names):
         if class_index == 0: continue  # ignore background
-        prediction_path = eval_path / f"det_test_{class_name}.txt"
+        hashed_class_name = abs(hash(class_name)) % (10 ** 8)
+        hashed_class_name = "%d" % hashed_class_name
+        prediction_path = eval_path / f"det_test_{hashed_class_name}.txt"
         with open(prediction_path, "w") as f:
             sub = results[results[:, 1] == class_index, :]
             for i in range(sub.size(0)):
@@ -203,7 +205,9 @@ if __name__ == '__main__':
     for class_index, class_name in enumerate(class_names):
         if class_index == 0:
             continue
-        prediction_path = eval_path / f"det_test_{class_name}.txt"
+        hashed_class_name = abs(hash(class_name)) % (10 ** 8)
+        hashed_class_name = "%d" % hashed_class_name
+        prediction_path = eval_path / f"det_test_{hashed_class_name}.txt"
         ap = compute_average_precision_per_class(
             true_case_stat[class_index],
             all_gb_boxes[class_index],
