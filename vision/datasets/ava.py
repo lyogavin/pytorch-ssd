@@ -98,6 +98,8 @@ class AVADataset:
 
     def _read_data(self):
         annotation_file = f"{self.root}/ava_{self.dataset_type}_v2.1.csv"
+
+        print('opening ', annotation_file)
         if DEBUG:
             annotation_file = annotation_file + ".debug"
         annotations = pd.read_csv(annotation_file,
