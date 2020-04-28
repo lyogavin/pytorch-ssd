@@ -7,6 +7,7 @@ from vision.datasets.voc_dataset import VOCDataset
 from vision.datasets.open_images import OpenImagesDataset
 from vision.utils import box_utils, measurements
 from vision.utils.misc import str2bool, Timer
+from vision.datasets.ava import AVADataset
 import argparse
 import pathlib
 import numpy as np
@@ -129,6 +130,9 @@ if __name__ == '__main__':
         dataset = VOCDataset(args.dataset, is_test=True)
     elif args.dataset_type == 'open_images':
         dataset = OpenImagesDataset(args.dataset, dataset_type="test")
+    elif args.dataset_type == 'ava':
+        dataset = AVADataset(args.dataset, dataset_type="val")
+        logging.info(dataset)
 
     true_case_stat, all_gb_boxes, all_difficult_cases = group_annotation_by_class(dataset)
     if args.net == 'vgg16-ssd':

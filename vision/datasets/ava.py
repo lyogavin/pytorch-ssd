@@ -1,11 +1,14 @@
 import numpy as np
 import pathlib
 import cv2
+import os
 import pandas as pd
 import copy
 import json
 
 FPS = 3
+
+DEBUG = False
 
 
 def sec_to_frame(sec):
@@ -95,11 +98,15 @@ class AVADataset:
 
     def _read_data(self):
         annotation_file = f"{self.root}/ava_{self.dataset_type}_v2.1.csv"
+        if DEBUG:
+            annotation_file = annotation_file + ".debug"
         annotations = pd.read_csv(annotation_file,
                                   names = ['video_id', 'sec_id', "XMin", "YMin", "XMax", "YMax", "class_id", "person_id"])
 
-        class_names = []
+        class_names_dict = dict()
         class_dict = dict()
+
+        max_class_id = 0
 
 
         with open(f"{self.root}/ava_action_list_v2.1_for_activitynet_2018.pbtxt") as f:
@@ -107,7 +114,7 @@ class AVADataset:
 
                 if "name:" in line:
                     class_name_start_pos = line.find('"')
-                    class_name_end_pos = line.find('"', class_name_start_pos)
+                    class_name_end_pos = line.find('"', class_name_start_pos+1)
                     class_name = line[class_name_start_pos + 1: class_name_end_pos]
 
                 if "id:" in line:
@@ -115,12 +122,25 @@ class AVADataset:
                     class_id = line[class_id_start_pos + 2:].rstrip()
                     class_id = int(class_id)
 
-                    class_names.append(class_name)
+                    class_names_dict[class_id] = class_name
+                    max_class_id = max(max_class_id, class_id)
                     class_dict[class_name] = class_id
 
+        class_names = []
+
+
+        for iii in range(max_class_id + 1):
+            if iii in class_names_dict:
+                class_names.append(class_names_dict[iii])
+            else:
+                class_names.append("")
+
+        print(class_names)
 
 
 
+
+        none_exist_count = 0
         data = []
         for video_id_sec_id, group in annotations.groupby(["video_id", "sec_id"]):
             video_id, sec_id = video_id_sec_id
@@ -129,6 +149,11 @@ class AVADataset:
 
             for frame_id in seq:
                 image_id = f"{video_id}_%06d" % frame_id
+                image_file = self.root / f"{image_id}"[:-7] / f"{image_id}.jpg"
+                if not os.path.exists(image_file):
+                    none_exist_count += 1
+                    continue
+
                 boxes = group.loc[:, ["XMin", "YMin", "XMax", "YMax"]].values.astype(np.float32)
                 # make labels 64 bits to satisfy the cross_entropy function
                 labels = np.array(group["class_id"], dtype='int64')
@@ -137,6 +162,8 @@ class AVADataset:
                     'boxes': boxes,
                     'labels': labels
                 })
+
+        print('non exist frames count:', none_exist_count)
         return data, class_names, class_dict
 
     def __len__(self):
@@ -160,8 +187,9 @@ class AVADataset:
     def _read_image(self, image_id):
         #image_file = self.root / self.dataset_type / f"{image_id}.jpg"
         image_file = self.root / f"{image_id}"[:-7] / f"{image_id}.jpg"
-        print('reading %s' % image_file)
         image = cv2.imread(str(image_file))
+        if image is None:
+            print('none reading %s' % image_file)
         if image.shape[2] == 1:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         else:
@@ -194,4 +222,5 @@ if __name__ == '__main__':
     
     for a in DataLoader(ds, num_workers=0):
         print([x.shape for x in a])
+
 

@@ -22,6 +22,7 @@ def SeperableConv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=
 
 
 def create_mobilenetv2_ssd_lite(num_classes, width_mult=1.0, use_batch_norm=True, onnx_compatible=False, is_test=False):
+    print("mobile net v2")
     base_net = MobileNetV2(width_mult=width_mult, use_batch_norm=use_batch_norm,
                            onnx_compatible=onnx_compatible).features
 
@@ -29,6 +30,7 @@ def create_mobilenetv2_ssd_lite(num_classes, width_mult=1.0, use_batch_norm=True
         GraphPath(14, 'conv', 3),
         19,
     ]
+    print(source_layer_indexes)
     extras = ModuleList([
         InvertedResidual(1280, 512, stride=2, expand_ratio=0.2),
         InvertedResidual(512, 256, stride=2, expand_ratio=0.25),

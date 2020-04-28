@@ -252,45 +252,48 @@ if __name__ == '__main__':
                             num_workers=args.num_workers,
                             shuffle=False)
     logging.info("Build network.")
-    net = create_net(num_classes)
-    min_loss = -10000.0
-    last_epoch = -1
+    try:
+        net = create_net(num_classes)
+        min_loss = -10000.0
+        last_epoch = -1
 
-    base_net_lr = args.base_net_lr if args.base_net_lr is not None else args.lr
-    extra_layers_lr = args.extra_layers_lr if args.extra_layers_lr is not None else args.lr
-    if args.freeze_base_net:
-        logging.info("Freeze base net.")
-        freeze_net_layers(net.base_net)
-        params = itertools.chain(net.source_layer_add_ons.parameters(), net.extras.parameters(),
-                                 net.regression_headers.parameters(), net.classification_headers.parameters())
-        params = [
-            {'params': itertools.chain(
-                net.source_layer_add_ons.parameters(),
-                net.extras.parameters()
-            ), 'lr': extra_layers_lr},
-            {'params': itertools.chain(
-                net.regression_headers.parameters(),
-                net.classification_headers.parameters()
-            )}
-        ]
-    elif args.freeze_net:
-        freeze_net_layers(net.base_net)
-        freeze_net_layers(net.source_layer_add_ons)
-        freeze_net_layers(net.extras)
-        params = itertools.chain(net.regression_headers.parameters(), net.classification_headers.parameters())
-        logging.info("Freeze all the layers except prediction heads.")
-    else:
-        params = [
-            {'params': net.base_net.parameters(), 'lr': base_net_lr},
-            {'params': itertools.chain(
-                net.source_layer_add_ons.parameters(),
-                net.extras.parameters()
-            ), 'lr': extra_layers_lr},
-            {'params': itertools.chain(
-                net.regression_headers.parameters(),
-                net.classification_headers.parameters()
-            )}
-        ]
+        base_net_lr = args.base_net_lr if args.base_net_lr is not None else args.lr
+        extra_layers_lr = args.extra_layers_lr if args.extra_layers_lr is not None else args.lr
+        if args.freeze_base_net:
+            logging.info("Freeze base net.")
+            freeze_net_layers(net.base_net)
+            params = itertools.chain(net.source_layer_add_ons.parameters(), net.extras.parameters(),
+                                     net.regression_headers.parameters(), net.classification_headers.parameters())
+            params = [
+                {'params': itertools.chain(
+                    net.source_layer_add_ons.parameters(),
+                    net.extras.parameters()
+                ), 'lr': extra_layers_lr},
+                {'params': itertools.chain(
+                    net.regression_headers.parameters(),
+                    net.classification_headers.parameters()
+                )}
+            ]
+        elif args.freeze_net:
+            freeze_net_layers(net.base_net)
+            freeze_net_layers(net.source_layer_add_ons)
+            freeze_net_layers(net.extras)
+            params = itertools.chain(net.regression_headers.parameters(), net.classification_headers.parameters())
+            logging.info("Freeze all the layers except prediction heads.")
+        else:
+            params = [
+                {'params': net.base_net.parameters(), 'lr': base_net_lr},
+                {'params': itertools.chain(
+                    net.source_layer_add_ons.parameters(),
+                    net.extras.parameters()
+                ), 'lr': extra_layers_lr},
+                {'params': itertools.chain(
+                    net.regression_headers.parameters(),
+                    net.classification_headers.parameters()
+                )}
+            ]
+    except Exception as e:
+        logging.info("err: %s" % e)
 
     timer.start("Load Model")
     if args.resume:
