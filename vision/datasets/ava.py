@@ -183,7 +183,7 @@ class AVADataset:
             for frame_id in seq:
                 image_id = f"{video_id}_%06d" % frame_id
                 image_file = self.root / f"{image_id}"[:-7] / f"{image_id}.jpg"
-                if not os.path.exists(image_file):
+                if not os.path.exists(image_file) or os.stat('image_file').st_size <= 0:
                     none_exist_count += 1
                     continue
 
