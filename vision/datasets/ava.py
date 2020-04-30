@@ -104,7 +104,11 @@ class AVADataset:
 
     def get_annotation(self, index):
         """To conform the eval_ssd implementation that is based on the VOC dataset."""
-        image_id, image, boxes, labels = self._getitem(index)
+
+        if self.return_image_id:
+            image_id, image, boxes, labels, _, _ = self._getitem(index)
+        else:
+            image_id, image, boxes, labels = self._getitem(index)
         is_difficult = np.zeros(boxes.shape[0], dtype=np.uint8)
         return image_id, (boxes, labels, is_difficult)
 
