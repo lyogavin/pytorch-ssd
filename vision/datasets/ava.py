@@ -57,7 +57,7 @@ class AVADataset:
 
         self.single_frame_sec = single_frame_sec
         self.return_image_id = return_image_id
-        
+
 
         self.data, self.class_names, self.class_dict = self._read_data()
         self.balance_data = balance_data
