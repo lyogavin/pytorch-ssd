@@ -47,7 +47,9 @@ class AVADataset:
 
     def __init__(self, root,
                  transform=None, target_transform=None,
-                 dataset_type="train", balance_data=False):
+                 dataset_type="train", balance_data=False,
+                 single_frame_sec=False,
+                 return_image_id=False):
         self.root = pathlib.Path(root)
         self.transform = transform
         self.target_transform = target_transform
@@ -61,6 +63,8 @@ class AVADataset:
         self.ids = [info['image_id'] for info in self.data]
 
         self.class_stat = None
+        self.single_frame_sec = single_frame_sec
+        self.return_image_id = return_image_id
 
     def _getitem(self, index):
         image_info = self.data[index]
@@ -80,8 +84,11 @@ class AVADataset:
         return image_info['image_id'], image, boxes, labels
 
     def __getitem__(self, index):
-        _, image, boxes, labels = self._getitem(index)
-        return image, boxes, labels
+        image_id, image, boxes, labels = self._getitem(index)
+        if self.return_image_id:
+            return image_id, image, boxes, labels
+        else:
+            return image, boxes, labels
 
     def get_annotation(self, index):
         """To conform the eval_ssd implementation that is based on the VOC dataset."""
@@ -147,7 +154,10 @@ class AVADataset:
         for video_id_sec_id, group in annotations.groupby(["video_id", "sec_id"]):
             video_id, sec_id = video_id_sec_id
             frame = sec_to_frame(sec_id)
-            seq = get_sequence(frame, NUM_FRAMES // 2, SAMPLE_RATE, FPS * (15 * 60 + 1))
+            if self.single_frame_sec:
+                seq = [frame]
+            else:
+                seq = get_sequence(frame, NUM_FRAMES // 2, SAMPLE_RATE, FPS * (15 * 60 + 1))
 
             for frame_id in seq:
                 image_id = f"{video_id}_%06d" % frame_id
@@ -192,6 +202,8 @@ class AVADataset:
         image = cv2.imread(str(image_file))
         if image is None:
             print('none reading %s' % image_file)
+            return None
+
         if image.shape[2] == 1:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
         else:
