@@ -88,7 +88,7 @@ class AVADataset:
     def __getitem__(self, index):
         image_id, image, boxes, labels = self._getitem(index)
         if self.return_image_id:
-            return image_id, image, boxes, labels
+            return image_id, image
         else:
             return image, boxes, labels
 

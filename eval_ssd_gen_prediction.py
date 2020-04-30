@@ -190,7 +190,7 @@ if __name__ == '__main__':
         print("process image", i)
         timer.start("Load Image")
 
-        image_ids, images, _, _ = batch
+        image_ids, images = batch
 
         image_ids = image_ids.numpy()
         images = images.numpy()
