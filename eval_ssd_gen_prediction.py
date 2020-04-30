@@ -43,6 +43,14 @@ parser.add_argument('--num_workers', default=4, type=int,
 args = parser.parse_args()
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() and args.use_cuda else "cpu")
 
+FPS = 3
+def frame_to_sec(frame):
+    """
+    Convert time index (in second) to frame index.
+    0: 900
+    30: 901
+    """
+    return (frame // FPS) + 900
 
 def group_annotation_by_class(dataset):
     true_case_stat = {}
@@ -177,7 +185,9 @@ if __name__ == '__main__':
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    predictions = pd.DataFrame(columns=['video_id', 'sec_id', "XMin", "YMin", "XMax", "YMax", "class_id", "person_id"])
+    dataset.transform = predictor.transform
+    predictor.transform = None
+
 
     results = []
 
@@ -186,20 +196,28 @@ if __name__ == '__main__':
                             num_workers=args.num_workers,
                             shuffle=False)
 
+    print('get image shape:', dataset.get_image(0).shape)
+
+    predictions = []
+    timer.start("Load Image Batch")
     for i, batch in enumerate(val_loader):
         print("process image", i)
-        timer.start("Load Image")
+
+        print("Load Image: {:4f} seconds.".format(timer.end("Load Image Batch")))
 
         image_ids, images = batch
 
-        image_ids = image_ids.numpy()
-        images = images.numpy()
+        #image_ids = image_ids.numpy()
+        #images = images.numpy()
 
         for i_in_batch in range(len(image_ids)):
 
             timer.start("Predict")
+            #print('image')
+            #print(images[i_in_batch])
             boxes, labels, probs = predictor.predict(images[i_in_batch])
             print("Prediction: {:4f} seconds.".format(timer.end("Predict")))
+            timer.start("post prediction")
             indexes = torch.ones(labels.size(0), 1, dtype=torch.float32) * i
             results.append(torch.cat([
                 indexes.reshape(-1, 1),
@@ -214,17 +232,21 @@ if __name__ == '__main__':
             np_labels = labels.numpy()
             np_probs = probs.numpy()
 
-            for j in len(np_boxes):
+            for j in range(len(np_boxes)):
                 predictions.append({"video_id": image_id[:-7],
-                                    'sec_id': int(image_id[-6:]),
+                                    'sec_id': "%04d" % frame_to_sec(int(image_id[-6:])),
                                     "XMin": np_boxes[j][0],
                                     "YMin": np_boxes[j][1],
                                     "XMax": np_boxes[j][2],
                                     "YMax": np_boxes[j][3],
                                     "class_id":np_labels[j],
-                                    "person_id":0
-                                    })
-    predictions.to_csv("prediction_result.csv")
+                                    "score":np_probs[j]
+                                    }) #, ignore_index=True)
+            print("Post Prediction: {:4f} seconds.".format(timer.end("post prediction")))
+
+        timer.start("Load Image Batch")
+    predictionsdf = pd.DataFrame(predictions, columns=['video_id', 'sec_id', "XMin", "YMin", "XMax", "YMax", "class_id", "score"])
+    predictionsdf.to_csv("prediction_result.csv", header=False, index=False)
     '''
 
     results = torch.cat(results)

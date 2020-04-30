@@ -28,8 +28,11 @@ class Predictor:
 
     def predict(self, image, top_k=-1, prob_threshold=None):
         cpu_device = torch.device("cpu")
-        height, width, _ = image.shape
-        image = self.transform(image)
+        height= image.shape[0]
+        width= image.shape[1]
+        print('image.shape ',  image.shape)
+        if self.transform:
+            image = self.transform(image)
         images = image.unsqueeze(0)
         images = images.to(self.device)
         with torch.no_grad():

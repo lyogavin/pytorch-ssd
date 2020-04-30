@@ -79,7 +79,11 @@ class AVADataset:
         boxes[:, 3] *= image.shape[0]
         # duplicate labels to prevent corruption of dataset
         labels = copy.copy(image_info['labels'])
-        if self.transform:
+        if self.return_image_id and self.transform:
+                image = self.transform(image)
+                boxes = None
+                lables = None
+        elif self.transform:
             image, boxes, labels = self.transform(image, boxes, labels)
         if self.target_transform:
             boxes, labels = self.target_transform(boxes, labels)
@@ -101,8 +105,12 @@ class AVADataset:
     def get_image(self, index):
         image_info = self.data[index]
         image = self._read_image(image_info['image_id'])
-        if self.transform:
-            image, _ = self.transform(image)
+        if self.return_image_id:
+            if self.transform:
+                image = self.transform(image)
+        else:
+            if self.transform:
+                image, _ = self.transform(image)
         return image
 
     def _read_data(self):
