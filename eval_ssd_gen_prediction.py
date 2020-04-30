@@ -223,7 +223,7 @@ if __name__ == '__main__':
 
         print("Load Image: {:4f} seconds.".format(timer.end("Load Image Batch")))
 
-        image_ids, images, height, width = batch
+        image_ids, images, heights, widths = batch
 
         #image_ids = image_ids.numpy()
         #images = images.numpy()
@@ -233,7 +233,7 @@ if __name__ == '__main__':
             timer.start("Predict")
             print('image shape')
             print(images[i_in_batch].shape)
-            boxes, labels, probs = predictor.predict(images[i_in_batch], height=height, width=width)
+            boxes, labels, probs = predictor.predict(images[i_in_batch], height=heights[i_in_batch], width=widths[i_in_batch])
             print("Prediction: {:4f} seconds.".format(timer.end("Predict")))
             timer.start("post prediction")
             indexes = torch.ones(labels.size(0), 1, dtype=torch.float32) * i

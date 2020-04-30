@@ -72,6 +72,7 @@ class AVADataset:
         image_info = self.data[index]
         image = self._read_image(image_info['image_id'])
         height, width, _ = image.shape
+        print('shapae to set hw', image.shape)
         # duplicate boxes to prevent corruption of dataset
         boxes = copy.copy(image_info['boxes'])
         boxes[:, 0] *= image.shape[1]

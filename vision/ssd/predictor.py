@@ -28,6 +28,8 @@ class Predictor:
 
     def predict(self, image, top_k=-1, prob_threshold=None, height=None, width=None):
         cpu_device = torch.device("cpu")
+        print("height:", height)
+        print("width:", width)
         if height is None:
             height= image.shape[0]
             width= image.shape[1]
