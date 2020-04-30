@@ -26,10 +26,11 @@ class Predictor:
 
         self.timer = Timer()
 
-    def predict(self, image, top_k=-1, prob_threshold=None):
+    def predict(self, image, top_k=-1, prob_threshold=None, height=None, width=None):
         cpu_device = torch.device("cpu")
-        height= image.shape[0]
-        width= image.shape[1]
+        if height is None:
+            height= image.shape[0]
+            width= image.shape[1]
         print('image.shape ',  image.shape)
         if self.transform:
             image = self.transform(image)

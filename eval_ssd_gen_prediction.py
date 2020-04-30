@@ -7,6 +7,8 @@ from vision.datasets.voc_dataset import VOCDataset
 from vision.datasets.open_images import OpenImagesDataset
 from vision.utils import box_utils, measurements
 from vision.utils.misc import str2bool, Timer
+from vision.transforms.transforms import *
+
 from vision.datasets.ava import AVADataset
 import argparse
 import pathlib
@@ -185,8 +187,24 @@ if __name__ == '__main__':
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    dataset.transform = None #predictor.transform
-    #predictor.transform = None
+
+    class PredictionTransform:
+        def __init__(self, size, mean=0.0, std=1.0):
+            self.transform = Compose([
+                Resize(size),
+                SubtractMeans(mean),
+                lambda img, boxes=None, labels=None: (img / std, boxes, labels),
+                ToTensor()
+            ])
+
+        def __call__(self, image, boxes=None, labels=None):
+            image, _, _ = self.transform(image)
+            return image
+
+
+
+    dataset.transform = predictor.transform
+    predictor.transform = None
 
 
     results = []
@@ -205,7 +223,7 @@ if __name__ == '__main__':
 
         print("Load Image: {:4f} seconds.".format(timer.end("Load Image Batch")))
 
-        image_ids, images = batch
+        image_ids, images, height, width = batch
 
         #image_ids = image_ids.numpy()
         #images = images.numpy()
@@ -215,7 +233,7 @@ if __name__ == '__main__':
             timer.start("Predict")
             print('image shape')
             print(images[i_in_batch].shape)
-            boxes, labels, probs = predictor.predict(images[i_in_batch])
+            boxes, labels, probs = predictor.predict(images[i_in_batch], height=height, width=width)
             print("Prediction: {:4f} seconds.".format(timer.end("Predict")))
             timer.start("post prediction")
             indexes = torch.ones(labels.size(0), 1, dtype=torch.float32) * i

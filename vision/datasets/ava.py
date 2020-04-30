@@ -71,6 +71,7 @@ class AVADataset:
     def _getitem(self, index):
         image_info = self.data[index]
         image = self._read_image(image_info['image_id'])
+        height, width, _ = image.shape
         # duplicate boxes to prevent corruption of dataset
         boxes = copy.copy(image_info['boxes'])
         boxes[:, 0] *= image.shape[1]
@@ -87,13 +88,18 @@ class AVADataset:
             image, boxes, labels = self.transform(image, boxes, labels)
         if self.target_transform:
             boxes, labels = self.target_transform(boxes, labels)
-        return image_info['image_id'], image, boxes, labels
+
+        if self.return_image_id:
+            return image_info['image_id'], image, boxes, labels, height, width
+        else:
+            return image_info['image_id'], image, boxes, labels
 
     def __getitem__(self, index):
-        image_id, image, boxes, labels = self._getitem(index)
         if self.return_image_id:
-            return image_id, image
+            image_id, image, boxes, labels, height, width = self._getitem(index)
+            return image_id, image, height, width
         else:
+            image_id, image, boxes, labels = self._getitem(index)
             return image, boxes, labels
 
     def get_annotation(self, index):
