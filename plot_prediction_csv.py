@@ -36,25 +36,35 @@ video_id = sample['video_id']
 frame_id =  sec_to_frame(sample['sec_id'])
 image_id = f"{video_id}_%06d" % frame_id
 
-image_path = f"{dataset_path}/{video_id}/{video_id}__{image_id}.jpg"
+image_path = f"{dataset_path}/{video_id}/{image_id}.jpg"
+
+print('img:', image_path)
 
 
 rows = predictions.loc[(predictions['video_id'] == video_id) & (predictions['sec_id'] == sample['sec_id'])]
+print('rows', rows)
 
 orig_image = cv2.imread(image_path)
 image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
 #boxes, labels, probs = predictor.predict(image, 10, 0.4)
+rows = rows.sort_values("score", ascending=False)
+print('rows', rows)
+rows = rows[:10]
+print('rows', rows)
+rows = rows[rows['score'] > 0.4]
+print('rows', rows)
 
-for row in rows:
+for inx, row in rows.iterrows():
 #for i in range(boxes.size(0)):
+    print('row', row)
     box = [row[ "XMin"], row["YMin"], row["XMax"], row["YMax"]] #boxes[i, :]
     print("box", box)
-    cv2.rectangle(orig_image, (box[0].int(), box[1].int()), (box[2].int(), box[3].int()), (255, 255, 0), 4)
+    cv2.rectangle(orig_image, (int(box[0]), int(box[1]), int(box[2]), int(box[3])), (255, 255, 0), 4)
     #label = f"""{voc_dataset.class_names[labels[i]]}: {probs[i]:.2f}"""
     label_id = row['class_id']
     label = f"{class_names[label_id]}: {row['score']:.2f}"
     cv2.putText(orig_image, label,
-                (box[0].int() + 20, box[1].int() + 40),
+                (int(box[0])+ 20, int(box[1]) + 40),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1,  # font scale
                 (255, 0, 255),
