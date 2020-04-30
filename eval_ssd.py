@@ -186,6 +186,9 @@ if __name__ == '__main__':
             boxes + 1.0  # matlab's indexes start from 1
         ], dim=1))
     results = torch.cat(results)
+    import pickle
+    pickle.dump(results, open('eval_results.pickle', 'wb'))
+
     for class_index, class_name in enumerate(class_names):
         if class_index == 0: continue  # ignore background
         hashed_class_name = abs(hash(class_name)) % (10 ** 8)
@@ -200,6 +203,8 @@ if __name__ == '__main__':
                     image_id + " " + " ".join([str(v) for v in prob_box]),
                     file=f
                 )
+            del sub
+    del results
     aps = []
     print("\n\nAverage Precision Per-class:")
     for class_index, class_name in enumerate(class_names):
