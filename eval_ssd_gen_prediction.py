@@ -237,7 +237,9 @@ if __name__ == '__main__':
             timer.start("Predict")
             print('image shape')
             print(images[i_in_batch].shape)
-            boxes, labels, probs = predictor.predict(images[i_in_batch], height=heights[i_in_batch], width=widths[i_in_batch])
+            boxes, labels, probs = predictor.predict(images[i_in_batch], top_k=50,
+                                                     height=1., width=1.)
+                                                     #height=heights[i_in_batch], width=widths[i_in_batch])
             print("Prediction: {:4f} seconds.".format(timer.end("Predict")))
             timer.start("post prediction")
             indexes = torch.ones(labels.size(0), 1, dtype=torch.float32) * i
