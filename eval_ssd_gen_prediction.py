@@ -210,6 +210,9 @@ if __name__ == '__main__':
     results = []
 
 
+    print("construct dataloader...")
+
+
     val_loader = DataLoader(dataset, args.batch_size,
                             num_workers=args.num_workers,
                             shuffle=False)
