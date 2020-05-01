@@ -59,6 +59,7 @@ def group_annotation_by_class(dataset):
     all_gt_boxes = {}
     all_difficult_cases = {}
     for i in range(len(dataset)):
+        print(f"getting annotations for {i}/{len(dataset)}")
         image_id, annotation = dataset.get_annotation(i)
         gt_boxes, classes, is_difficult = annotation
         gt_boxes = torch.from_numpy(gt_boxes)
