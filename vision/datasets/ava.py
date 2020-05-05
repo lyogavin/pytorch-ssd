@@ -232,6 +232,7 @@ class AVADataset:
         return image
 
     def _balance_data(self):
+        min_factor = 10
         label_image_indexes = [set() for _ in range(len(self.class_names))]
         for i, image in enumerate(self.data):
             for label_id in image['labels']:
@@ -241,7 +242,7 @@ class AVADataset:
         sample_image_indexes = set()
         for image_indexes in label_image_indexes[1:]:
             image_indexes = np.array(list(image_indexes))
-            sub = np.random.permutation(image_indexes)[:self.min_image_num]
+            sub = np.random.permutation(image_indexes)[:self.min_image_num * min_factor]
             sample_image_indexes.update(sub)
         sample_data = [self.data[i] for i in sample_image_indexes]
         return sample_data
