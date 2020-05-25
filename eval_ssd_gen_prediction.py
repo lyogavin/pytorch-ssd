@@ -224,9 +224,9 @@ if __name__ == '__main__':
     predictions = []
     timer.start("Load Image Batch")
     for i, batch in enumerate(val_loader):
-        print("process image", i)
+        #print("process image", i)
 
-        print("Load Image: {:4f} seconds.".format(timer.end("Load Image Batch")))
+        #print("Load Image: {:4f} seconds.".format(timer.end("Load Image Batch")))
 
         image_ids, images, heights, widths = batch
 
