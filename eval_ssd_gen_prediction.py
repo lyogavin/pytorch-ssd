@@ -18,7 +18,7 @@ import sys
 import pandas as pd
 from vision.ssd.mobilenet_v2_ssd_lite import create_mobilenetv2_ssd_lite, create_mobilenetv2_ssd_lite_predictor
 from torch.utils.data import DataLoader, ConcatDataset
-
+import concurrent.futures
 
 parser = argparse.ArgumentParser(description="SSD Evaluation on VOC Dataset.")
 parser.add_argument('--net', default="vgg16-ssd",
@@ -58,10 +58,25 @@ def group_annotation_by_class(dataset):
     true_case_stat = {}
     all_gt_boxes = {}
     all_difficult_cases = {}
+
+    i_to_data = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        future_to_i = {executor.submit(dataset.get_annotation, i): i for i in range(len(dataset))}
+
+        for future in concurrent.futures.as_completed(future_to_i):
+            i = future_to_i[future]
+            try:
+                image_id, annotation = future.result()
+                i_to_data[i] = (image_id, annotation)
+            except Exception as exc:
+                print('%r generated an exception: %s' % (i, exc))
+            else:
+                print('%r page error' % i)
+
     for i in range(len(dataset)):
         if i % 100 == 0:
             print(f"getting annotations for {i}/{len(dataset)}")
-        image_id, annotation = dataset.get_annotation(i)
+        image_id, annotation = i_to_data[i] #dataset.get_annotation(i)
         gt_boxes, classes, is_difficult = annotation
         gt_boxes = torch.from_numpy(gt_boxes)
         for i, difficult in enumerate(is_difficult):
